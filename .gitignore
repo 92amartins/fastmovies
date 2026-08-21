@@ -1,0 +1,8 @@
+.venv/
+.env
+__pycache__/
+.pytest_cache/
+*.py[cod]
+model.joblib
+ml-latest-small/
+.DS_Store
