@@ -4,5 +4,5 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 model.joblib
-ml-latest-small/
+data/
 .DS_Store
