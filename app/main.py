@@ -6,11 +6,13 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 
 from app.recommender import MovieRecommender
 
-MODEL_PATH = Path(os.getenv("MODEL_PATH", "model.joblib"))
+DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "model.joblib"
+MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
 model: MovieRecommender | None = None
 
 
@@ -35,6 +37,11 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="MovieLens Recommender API", version="1.0.0", lifespan=lifespan)
+
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse(url="/docs", status_code=307)
 
 
 @app.get("/health")

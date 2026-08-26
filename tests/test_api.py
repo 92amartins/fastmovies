@@ -7,6 +7,12 @@ from app import main
 from app.recommender import MovieRecommender
 
 
+def test_root_redirects_to_docs() -> None:
+    response = TestClient(main.app).get("/", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/docs"
+
+
 def test_health_without_model() -> None:
     main.model = None
     response = TestClient(main.app).get("/health")

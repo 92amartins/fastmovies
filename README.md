@@ -29,6 +29,10 @@ Endpoints:
 - `GET /docs`
 
 O caminho do modelo pode ser alterado com a variável de ambiente `MODEL_PATH`.
+O arquivo `model.joblib` precisa estar presente no diretório enviado para o deploy.
+Como ele é um artefato local grande, confirme no resumo do `fastapi deploy` que ele
+foi incluído; a regra `!model.joblib` no `.gitignore` permite que o FastAPI Cloud o
+encontre sem exigir que o arquivo seja commitado.
 
 ## Testes
 

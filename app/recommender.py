@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -14,6 +15,8 @@ class MovieRecommender:
     movies: pd.DataFrame
     similarity: Any
     movie_index: dict[int, int]
+    neighbor_indices: Any | None = None
+    neighbor_scores: Any | None = None
 
     @classmethod
     def train(cls, ratings_path: str | Path, movies_path: str | Path) -> MovieRecommender:
@@ -23,7 +26,7 @@ class MovieRecommender:
 
     @classmethod
     def train_from_frames(
-        cls, ratings: pd.DataFrame, movies: pd.DataFrame
+        cls, ratings: pd.DataFrame, movies: pd.DataFrame, neighbors: int = 100
     ) -> MovieRecommender:
         required_ratings = {"userId", "movieId", "rating"}
         required_movies = {"movieId", "title", "genres"}
@@ -37,21 +40,40 @@ class MovieRecommender:
         )
         movie_ids = user_movie.index.astype(int).tolist()
         similarity = cosine_similarity(user_movie)
+        neighbor_count = min(neighbors + 1, len(movie_ids))
+        neighbor_indices = similarity.argsort(axis=1)[:, -neighbor_count:][:, ::-1]
+        neighbor_scores = similarity[
+            np.arange(len(movie_ids))[:, None], neighbor_indices
+        ].astype("float32")
         catalog = movies[movies["movieId"].isin(movie_ids)].copy()
         catalog["movieId"] = catalog["movieId"].astype(int)
         catalog = catalog.set_index("movieId").loc[movie_ids].reset_index()
-        return cls(catalog, similarity, {movie_id: i for i, movie_id in enumerate(movie_ids)})
+        return cls(
+            catalog,
+            similarity=None,
+            movie_index={movie_id: i for i, movie_id in enumerate(movie_ids)},
+            neighbor_indices=neighbor_indices.astype("int32"),
+            neighbor_scores=neighbor_scores,
+        )
 
-    def recommend(self, movie_id: int, limit: int = 10) -> list[dict[str, Any]]:
+    def recommend(self, movie_id: int, limit: int = 10) -> list[dict[str, int | float | str]]:
         if movie_id not in self.movie_index:
             raise KeyError(movie_id)
         row = self.movie_index[movie_id]
-        scores = self.similarity[row]
-        candidates = [
-            (candidate_id, float(scores[index]))
-            for candidate_id, index in self.movie_index.items()
-            if candidate_id != movie_id
-        ]
+        if self.neighbor_indices is not None and self.neighbor_scores is not None:
+            movie_ids_by_index = {index: movie_id for movie_id, index in self.movie_index.items()}
+            candidates = [
+                (movie_ids_by_index[index], float(score))
+                for index, score in zip(self.neighbor_indices[row], self.neighbor_scores[row])
+                if movie_ids_by_index[index] != movie_id
+            ]
+        else:
+            scores = self.similarity[row]
+            candidates = [
+                (candidate_id, float(scores[index]))
+                for candidate_id, index in self.movie_index.items()
+                if candidate_id != movie_id
+            ]
         candidates.sort(key=lambda item: item[1], reverse=True)
         selected = candidates[:limit]
         movies_by_id = self.movies.set_index("movieId")

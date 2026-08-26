@@ -4,5 +4,6 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 model.joblib
+!model.joblib
 data/
 .DS_Store

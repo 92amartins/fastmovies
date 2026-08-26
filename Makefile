@@ -1,4 +1,4 @@
-.PHONY: help dependencies run test train
+.PHONY: help dependencies run test train deploy
 
 help:
 	@echo "Available commands:"
@@ -6,12 +6,13 @@ help:
 	@echo "  make run           Start the API"
 	@echo "  make test          Run tests"
 	@echo "  make train         Train the recommender model"
+	@echo "  make deploy        Deploy to FastAPI Cloud"
 
 dependencies:
 	uv sync
 
 run:
-	uv run fastapi run
+	uv run fastapi run --host 127.0.0.1
 
 dev:
 	uv run fastapi dev
@@ -21,3 +22,6 @@ test:
 
 train:
 	uv run python -m scripts.train
+
+deploy:
+	uv run fastapi deploy
