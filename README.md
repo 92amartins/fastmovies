@@ -13,7 +13,7 @@ uv sync
 Baixe o dataset `ml-latest-small` do MovieLens e extraia a pasta na raiz do projeto. Depois treine o modelo:
 
 ```powershell
-uv run python scripts/train.py
+uv run python -m scripts.train
 ```
 
 Inicie a API:

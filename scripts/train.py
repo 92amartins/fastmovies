@@ -8,8 +8,8 @@ from app.recommender import MovieRecommender
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train a MovieLens item-based recommender")
-    parser.add_argument("--ratings", default="ml-latest-small/ratings.csv")
-    parser.add_argument("--movies", default="ml-latest-small/movies.csv")
+    parser.add_argument("--ratings", default="data/ml-latest-small/ratings.csv")
+    parser.add_argument("--movies", default="data/ml-latest-small/movies.csv")
     parser.add_argument("--output", default="model.joblib")
     args = parser.parse_args()
 

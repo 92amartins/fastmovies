@@ -20,4 +20,4 @@ test:
 	uv run pytest
 
 train:
-	uv run python scripts/train.py
+	uv run python -m scripts.train
