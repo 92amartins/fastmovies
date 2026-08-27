@@ -6,12 +6,14 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.recommender import MovieRecommender
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "model.joblib"
+FRONTEND_PATH = Path(__file__).resolve().parents[1] / "frontend"
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
 model: MovieRecommender | None = None
 
@@ -28,6 +30,12 @@ class RecommendationResponse(BaseModel):
     recommendations: list[Recommendation]
 
 
+class Movie(BaseModel):
+    movieId: int
+    title: str
+    genres: str
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     global model
@@ -37,16 +45,27 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="MovieLens Recommender API", version="1.0.0", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=FRONTEND_PATH), name="static")
 
 
 @app.get("/", include_in_schema=False)
-def root() -> RedirectResponse:
-    return RedirectResponse(url="/docs", status_code=307)
+def root() -> FileResponse:
+    return FileResponse(FRONTEND_PATH / "index.html")
 
 
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {"status": "ok", "model_loaded": model is not None}
+
+
+@app.get("/movies", response_model=list[Movie])
+def movies(
+    query: str = Query(..., min_length=1),
+    limit: int = Query(10, ge=1, le=50),
+) -> list[Movie]:
+    if model is None:
+        raise HTTPException(status_code=503, detail="Recommendation model is not loaded")
+    return [Movie(**movie) for movie in model.search_movies(query, limit)]
 
 
 @app.get("/recommendations", response_model=RecommendationResponse)

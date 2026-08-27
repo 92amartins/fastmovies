@@ -87,6 +87,25 @@ class MovieRecommender:
             for candidate_id, score in selected
         ]
 
+    def search_movies(self, query: str, limit: int = 10) -> list[dict[str, int | str]]:
+        normalized_query = query.strip().casefold()
+        if not normalized_query:
+            return []
+
+        matches = [
+            {
+                "movieId": int(movie_id),
+                "title": str(row["title"]),
+                "genres": str(row["genres"]),
+            }
+            for row in self.movies.to_dict("records")
+            for movie_id in [row["movieId"]]
+            if movie_id in self.movie_index
+            and normalized_query in str(row["title"]).casefold()
+        ]
+        matches.sort(key=lambda movie: (str(movie["title"]).casefold(), movie["movieId"]))
+        return matches[:limit]
+
     def save(self, path: str | Path) -> None:
         joblib.dump(self, path)
 
