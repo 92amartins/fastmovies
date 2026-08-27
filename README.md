@@ -22,11 +22,20 @@ Inicie a API:
 uv run uvicorn app.main:app --reload
 ```
 
+Abra `http://127.0.0.1:8000/` no navegador para usar a interface de recomendações.
+Os filmes podem ser buscados por título; a documentação interativa continua disponível em
+`http://127.0.0.1:8000/docs`.
+
 Endpoints:
 
 - `GET /health`
+- `GET /movies?query=matrix&limit=10`
 - `GET /recommendations?movie_id=1&limit=10`
 - `GET /docs`
+
+`/movies` retorna filmes do catálogo do modelo com `movieId`, `title` e `genres`.
+O parâmetro `limit` aceita valores de 1 a 50. A interface usa esse resultado para
+selecionar um filme antes de consultar `/recommendations`.
 
 O caminho do modelo pode ser alterado com a variável de ambiente `MODEL_PATH`.
 O arquivo `model.joblib` precisa estar presente no diretório enviado para o deploy.

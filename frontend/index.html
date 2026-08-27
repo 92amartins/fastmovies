@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Find a movie and discover similar films.">
+  <title>Framefinder | Movie recommendations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="wordmark" href="/" aria-label="Framefinder home">
+        <span class="wordmark-mark">F</span>
+        <span>framefinder</span>
+      </a>
+      <a class="docs-link" href="/docs">API docs <span aria-hidden="true">&rarr;</span></a>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">MovieLens recommendation engine</p>
+        <h1 id="page-title">Find your next<br><em>great watch.</em></h1>
+        <p class="intro-copy">Start with a film you love. We will surface a short list of movies with a similar taste profile.</p>
+      </section>
+
+      <section class="search-panel" aria-labelledby="search-title">
+        <div class="section-label">
+          <span class="step-number">01</span>
+          <h2 id="search-title">Choose a movie</h2>
+        </div>
+        <form id="search-form" class="search-form">
+          <label class="sr-only" for="movie-query">Search movie titles</label>
+          <div class="search-input-wrap">
+            <span class="search-icon" aria-hidden="true">/</span>
+            <input id="movie-query" name="query" type="search" placeholder="Try &quot;The Matrix&quot; or &quot;Toy Story&quot;" autocomplete="off" required>
+            <button type="submit" class="search-button" aria-label="Search movies">Search <span aria-hidden="true">&rarr;</span></button>
+          </div>
+        </form>
+        <div id="search-status" class="status" role="status" aria-live="polite"></div>
+        <div id="movie-results" class="movie-results" aria-label="Movie search results"></div>
+      </section>
+
+      <section id="recommendation-section" class="recommendation-panel" aria-labelledby="recommendation-title" hidden>
+        <div class="section-label">
+          <span class="step-number">02</span>
+          <h2 id="recommendation-title">Similar films</h2>
+          <label class="limit-control">Show
+            <select id="limit" aria-label="Number of recommendations">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+            </select>
+          </label>
+        </div>
+        <div id="selected-movie" class="selected-movie"></div>
+        <div id="recommendation-status" class="status" role="status" aria-live="polite"></div>
+        <div id="recommendations" class="recommendations"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Powered by item-based collaborative filtering</span>
+      <span class="footer-dot" aria-hidden="true"></span>
+      <span>MovieLens data</span>
+    </footer>
+  </div>
+</body>
+</html>
