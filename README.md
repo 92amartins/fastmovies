@@ -16,6 +16,15 @@ Baixe o dataset `ml-latest-small` do MovieLens e extraia a pasta na raiz do proj
 uv run python -m scripts.train
 ```
 
+Para treinar o modelo two-tower com PyTorch Lightning:
+
+```powershell
+uv run python -m scripts.train --model two_tower --output model.pt
+```
+
+Ao iniciar a API com esse artefato, defina `MODEL_PATH=model.pt` e
+`MODEL_TYPE=two_tower`.
+
 Inicie a API:
 
 ```powershell

@@ -4,7 +4,7 @@ import pandas as pd
 from fastapi.testclient import TestClient
 
 from app import main
-from app.recommender import MovieRecommender
+from app.recommender import MovieRecommender, load_recommender
 
 
 def test_root_serves_frontend() -> None:
@@ -91,3 +91,19 @@ def test_unknown_movie_returns_not_found() -> None:
     )
     response = TestClient(main.app).get("/recommendations?movie_id=99")
     assert response.status_code == 404
+
+
+def test_loader_rejects_unknown_model_type(tmp_path) -> None:
+    path = tmp_path / "model.joblib"
+    MovieRecommender(
+        pd.DataFrame({"movieId": [1], "title": ["Alpha"], "genres": ["Action"]}),
+        [[1.0]],
+        {1: 0},
+    ).save(path)
+
+    try:
+        load_recommender(path, "unknown")
+    except ValueError as error:
+        assert str(error) == "Unsupported model type: unknown"
+    else:
+        raise AssertionError("Expected an unsupported model type error")

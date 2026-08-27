@@ -10,12 +10,13 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app.recommender import MovieRecommender
+from app.recommender import Recommender, load_recommender
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "model.joblib"
 FRONTEND_PATH = Path(__file__).resolve().parents[1] / "frontend"
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
-model: MovieRecommender | None = None
+MODEL_TYPE = os.getenv("MODEL_TYPE", "item")
+model: Recommender | None = None
 
 
 class Recommendation(BaseModel):
@@ -40,7 +41,7 @@ class Movie(BaseModel):
 async def lifespan(_: FastAPI):
     global model
     if MODEL_PATH.exists():
-        model = MovieRecommender.load(MODEL_PATH)
+        model = load_recommender(MODEL_PATH, MODEL_TYPE)
     yield
 
 
