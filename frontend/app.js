@@ -7,6 +7,7 @@ const selectedMovie = document.querySelector('#selected-movie');
 const recommendationStatus = document.querySelector('#recommendation-status');
 const recommendations = document.querySelector('#recommendations');
 const limitSelect = document.querySelector('#limit');
+const modelSelect = document.querySelector('#model');
 
 searchForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -16,7 +17,7 @@ searchForm.addEventListener('submit', async (event) => {
   movieResults.replaceChildren();
   setStatus(searchStatus, 'Searching the catalog...');
   try {
-    const response = await fetch(`/movies?query=${encodeURIComponent(query)}&limit=10`);
+    const response = await fetch(`/movies?query=${encodeURIComponent(query)}&limit=10&model=${modelSelect.value}`);
     if (!response.ok) throw new Error(await errorMessage(response));
     const movies = await response.json();
     renderMovieResults(movies);
@@ -58,7 +59,7 @@ async function loadRecommendations(movieId, movie) {
   recommendationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
-    const response = await fetch(`/recommendations?movie_id=${movieId}&limit=${limitSelect.value}`);
+    const response = await fetch(`/recommendations?movie_id=${movieId}&limit=${limitSelect.value}&model=${modelSelect.value}`);
     if (!response.ok) throw new Error(await errorMessage(response));
     const data = await response.json();
     renderRecommendations(data.recommendations);

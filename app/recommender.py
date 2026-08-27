@@ -14,6 +14,9 @@ class Recommender(Protocol):
     def recommend(self, movie_id: int, limit: int = 10) -> list[dict[str, int | float | str]]:
         ...
 
+    def search_movies(self, query: str, limit: int = 10) -> list[dict[str, int | str]]:
+        ...
+
 
 def load_recommender(path: str | Path, model_type: str = "item") -> Recommender:
     if model_type == "item":

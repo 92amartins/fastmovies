@@ -23,7 +23,9 @@ uv run python -m scripts.train --model two_tower --output model.pt
 ```
 
 Ao iniciar a API com esse artefato, defina `MODEL_PATH=model.pt` e
-`MODEL_TYPE=two_tower`.
+`TWO_TOWER_MODEL_PATH=model.pt`. A interface permite escolher entre os modelos
+carregados. Clientes da API podem usar `model=item` ou `model=two_tower` em
+`/movies` e `/recommendations`.
 
 Inicie a API:
 

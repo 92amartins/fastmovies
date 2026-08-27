@@ -104,6 +104,22 @@ class TwoTowerRecommender:
             for candidate_id, score in candidates[:limit]
         ]
 
+    def search_movies(self, query: str, limit: int = 10) -> list[dict[str, int | str]]:
+        normalized_query = query.strip().casefold()
+        if not normalized_query:
+            return []
+        matches = [
+            {
+                "movieId": int(row["movieId"]),
+                "title": str(row["title"]),
+                "genres": str(row["genres"]),
+            }
+            for row in self.movies.to_dict("records")
+            if normalized_query in str(row["title"]).casefold()
+        ]
+        matches.sort(key=lambda movie: (str(movie["title"]).casefold(), movie["movieId"]))
+        return matches[:limit]
+
     def save(self, path: str | Path) -> None:
         torch.save(
             {
