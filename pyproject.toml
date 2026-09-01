@@ -9,6 +9,8 @@ dependencies = [
     "pandas>=2.2,<3.0",
     "scikit-learn>=1.5,<2.0",
     "joblib>=1.4,<2.0",
+    "torch>=2.4,<3.0",
+    "lightning>=2.4,<3.0",
 ]
 
 [dependency-groups]

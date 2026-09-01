@@ -3,19 +3,27 @@ from __future__ import annotations
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app.recommender import MovieRecommender
+from app.recommender import Recommender, load_recommender
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "model.joblib"
 FRONTEND_PATH = Path(__file__).resolve().parents[1] / "frontend"
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
-model: MovieRecommender | None = None
+MODEL_TYPE = os.getenv("MODEL_TYPE", "item")
+if MODEL_TYPE not in {"item", "two_tower"}:
+    raise ValueError("MODEL_TYPE must be 'item' or 'two_tower'")
+MODEL_PATHS = {
+    "item": Path(os.getenv("ITEM_MODEL_PATH", str(MODEL_PATH if MODEL_TYPE == "item" else DEFAULT_MODEL_PATH))),
+    "two_tower": Path(os.getenv("TWO_TOWER_MODEL_PATH", str(MODEL_PATH if MODEL_TYPE == "two_tower" else DEFAULT_TWO_TOWER_MODEL_PATH))),
+}
+model: Recommender | None = None
+models: dict[str, Recommender] = {}
 
 
 class Recommendation(BaseModel):
@@ -38,9 +46,13 @@ class Movie(BaseModel):
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    global model
-    if MODEL_PATH.exists():
-        model = MovieRecommender.load(MODEL_PATH)
+    global model, models
+    models = {
+        model_type: load_recommender(path, model_type)
+        for model_type, path in MODEL_PATHS.items()
+        if path.exists()
+    }
+    model = models.get("item")
     yield
 
 
@@ -72,11 +84,13 @@ def movies(
 def recommendations(
     movie_id: int = Query(..., gt=0),
     limit: int = Query(10, ge=1, le=100),
+    model_type: Literal["item", "two_tower"] = Query("item", alias="model"),
 ) -> RecommendationResponse:
-    if model is None:
-        raise HTTPException(status_code=503, detail="Recommendation model is not loaded")
+    selected_model = get_model(model_type)
+    if selected_model is None:
+        raise HTTPException(status_code=503, detail=f"Recommendation model '{model_type}' is not loaded")
     try:
-        results = model.recommend(movie_id, limit)
+        results = selected_model.recommend(movie_id, limit)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Movie {movie_id} was not found") from None
     return RecommendationResponse(movieId=movie_id, recommendations=results)

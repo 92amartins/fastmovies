@@ -2,12 +2,30 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 import joblib
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+
+
+class Recommender(Protocol):
+    def recommend(self, movie_id: int, limit: int = 10) -> list[dict[str, int | float | str]]:
+        ...
+
+    def search_movies(self, query: str, limit: int = 10) -> list[dict[str, int | str]]:
+        ...
+
+
+def load_recommender(path: str | Path, model_type: str = "item") -> Recommender:
+    if model_type == "item":
+        return MovieRecommender.load(path)
+    if model_type == "two_tower":
+        from app.two_tower import TwoTowerRecommender
+
+        return TwoTowerRecommender.load(path)
+    raise ValueError(f"Unsupported model type: {model_type}")
 
 
 @dataclass
