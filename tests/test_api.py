@@ -26,6 +26,20 @@ def test_health_without_model() -> None:
     assert response.json() == {"status": "ok", "model_loaded": False}
 
 
+def test_available_models_reports_loaded_models() -> None:
+    main.model = MovieRecommender(
+        pd.DataFrame({"movieId": [1], "title": ["Alpha"], "genres": ["Action"]}),
+        [[1.0]],
+        {1: 0},
+    )
+    main.models = {"item": main.model}
+
+    response = TestClient(main.app).get("/models")
+
+    assert response.status_code == 200
+    assert response.json() == ["item"]
+
+
 def test_movies_search_returns_matching_catalog_entries() -> None:
     main.model = MovieRecommender(
         pd.DataFrame(
@@ -107,6 +121,16 @@ def test_recommendations_rejects_unknown_model() -> None:
     response = TestClient(main.app).get("/recommendations?movie_id=1&model=unknown")
 
     assert response.status_code == 422
+
+
+def test_recommendations_reports_unloaded_model() -> None:
+    main.model = None
+    main.models = {}
+
+    response = TestClient(main.app).get("/recommendations?movie_id=1&model=two_tower")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Recommendation model 'two_tower' is not loaded"
 
 
 def test_unknown_movie_returns_not_found() -> None:

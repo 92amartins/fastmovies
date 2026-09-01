@@ -9,6 +9,26 @@ const recommendations = document.querySelector('#recommendations');
 const limitSelect = document.querySelector('#limit');
 const modelSelect = document.querySelector('#model');
 
+loadAvailableModels();
+
+async function loadAvailableModels() {
+  try {
+    const response = await fetch('/models');
+    if (!response.ok) throw new Error(await errorMessage(response));
+    const availableModels = await response.json();
+    [...modelSelect.options].forEach((option) => {
+      const isAvailable = availableModels.includes(option.value);
+      option.disabled = !isAvailable;
+      if (!isAvailable) option.textContent = `${option.textContent.split(' (')[0]} (not loaded)`;
+    });
+    if (!availableModels.includes(modelSelect.value) && availableModels.length) {
+      modelSelect.value = availableModels[0];
+    }
+  } catch {
+    modelSelect.value = 'item';
+  }
+}
+
 searchForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const query = queryInput.value.trim();

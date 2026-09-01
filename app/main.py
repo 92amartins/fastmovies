@@ -13,11 +13,15 @@ from pydantic import BaseModel
 from app.recommender import Recommender, load_recommender
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "model.joblib"
+DEFAULT_TWO_TOWER_MODEL_PATH = Path(__file__).resolve().parents[1] / "model.pt"
 FRONTEND_PATH = Path(__file__).resolve().parents[1] / "frontend"
 MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH)))
+MODEL_TYPE = os.getenv("MODEL_TYPE", "item")
+if MODEL_TYPE not in {"item", "two_tower"}:
+    raise ValueError("MODEL_TYPE must be 'item' or 'two_tower'")
 MODEL_PATHS = {
-    "item": MODEL_PATH,
-    "two_tower": Path(os.getenv("TWO_TOWER_MODEL_PATH", "model.pt")),
+    "item": Path(os.getenv("ITEM_MODEL_PATH", str(MODEL_PATH if MODEL_TYPE == "item" else DEFAULT_MODEL_PATH))),
+    "two_tower": Path(os.getenv("TWO_TOWER_MODEL_PATH", str(MODEL_PATH if MODEL_TYPE == "two_tower" else DEFAULT_TWO_TOWER_MODEL_PATH))),
 }
 model: Recommender | None = None
 models: dict[str, Recommender] = {}
@@ -57,6 +61,12 @@ app = FastAPI(title="MovieLens Recommender API", version="1.0.0", lifespan=lifes
 app.mount("/static", StaticFiles(directory=FRONTEND_PATH), name="static")
 
 
+def get_model(model_type: str) -> Recommender | None:
+    if model_type == "item":
+        return model
+    return models.get(model_type)
+
+
 @app.get("/", include_in_schema=False)
 def root() -> FileResponse:
     return FileResponse(FRONTEND_PATH / "index.html")
@@ -67,15 +77,25 @@ def health() -> dict[str, Any]:
     return {"status": "ok", "model_loaded": model is not None}
 
 
+@app.get("/models", response_model=list[str])
+def available_models() -> list[str]:
+    loaded_models = set(models)
+    if model is None:
+        loaded_models.discard("item")
+    else:
+        loaded_models.add("item")
+    return sorted(loaded_models)
+
+
 @app.get("/movies", response_model=list[Movie])
 def movies(
     query: str = Query(..., min_length=1),
     limit: int = Query(10, ge=1, le=50),
     model_type: Literal["item", "two_tower"] = Query("item", alias="model"),
 ) -> list[Movie]:
-    selected_model = models.get(model_type, model if model_type == "item" else None)
+    selected_model = get_model(model_type)
     if selected_model is None:
-        raise HTTPException(status_code=503, detail="Recommendation model is not loaded")
+        raise HTTPException(status_code=503, detail=f"Recommendation model '{model_type}' is not loaded")
     return [Movie(**movie) for movie in selected_model.search_movies(query, limit)]
 
 
@@ -85,9 +105,9 @@ def recommendations(
     limit: int = Query(10, ge=1, le=100),
     model_type: Literal["item", "two_tower"] = Query("item", alias="model"),
 ) -> RecommendationResponse:
-    selected_model = models.get(model_type, model if model_type == "item" else None)
+    selected_model = get_model(model_type)
     if selected_model is None:
-        raise HTTPException(status_code=503, detail="Recommendation model is not loaded")
+        raise HTTPException(status_code=503, detail=f"Recommendation model '{model_type}' is not loaded")
     try:
         results = selected_model.recommend(movie_id, limit)
     except KeyError:

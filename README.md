@@ -22,16 +22,29 @@ Para treinar o modelo two-tower com PyTorch Lightning:
 uv run python -m scripts.train --model two_tower --output model.pt
 ```
 
-Ao iniciar a API com esse artefato, defina `MODEL_PATH=model.pt` e
-`TWO_TOWER_MODEL_PATH=model.pt`. A interface permite escolher entre os modelos
-carregados. Clientes da API podem usar `model=item` ou `model=two_tower` em
-`/movies` e `/recommendations`.
+Ao iniciar a API somente com esse artefato, defina `MODEL_PATH=model.pt` e
+`MODEL_TYPE=two_tower`. Para permitir a escolha entre os dois modelos, deixe o
+modelo item-based em `model.joblib` e defina `TWO_TOWER_MODEL_PATH=model.pt`.
+Clientes da API podem usar `model=item` ou `model=two_tower` em `/movies` e
+`/recommendations`.
 
 Inicie a API:
 
 ```powershell
 uv run uvicorn app.main:app --reload
 ```
+
+Para publicar os dois modelos juntos, gere `model.joblib` e `model.pt` na raiz
+do projeto e execute:
+
+```powershell
+make deploy
+```
+
+O alvo valida os dois artefatos antes de chamar `fastapi deploy`. No FastAPI
+Cloud, configure as variáveis `ITEM_MODEL_PATH=model.joblib` e
+`TWO_TOWER_MODEL_PATH=model.pt` caso use caminhos diferentes dos padrões. A
+interface escolherá somente os modelos carregados.
 
 Abra `http://127.0.0.1:8000/` no navegador para usar a interface de recomendações.
 Os filmes podem ser buscados por título; a documentação interativa continua disponível em
