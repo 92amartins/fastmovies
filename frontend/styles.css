@@ -36,10 +36,7 @@ h1 em { color: var(--coral); font-style: normal; }
 .step-number { color: var(--coral); font-size: 12px; }
 h2 { margin: 0; font-size: 18px; letter-spacing: -.03em; }
 .limit-control { margin-left: auto; color: var(--muted); font-size: 11px; }
-.model-control { margin-left: auto; color: var(--muted); font-size: 11px; }
-.model-control + .limit-control { margin-left: 0; }
 .limit-control select { border: 0; border-bottom: 1px solid var(--ink); color: var(--ink); background: transparent; padding: 3px 18px 3px 4px; }
-.model-control select { border: 0; border-bottom: 1px solid var(--ink); color: var(--ink); background: transparent; padding: 3px 18px 3px 4px; }
 .search-input-wrap { display: flex; align-items: center; border-bottom: 2px solid var(--ink); }
 .search-icon { color: var(--coral); font-family: var(--mono); font-size: 21px; transform: rotate(-45deg); margin: 0 13px 2px 3px; }
 input[type="search"] { min-width: 0; flex: 1; border: 0; outline: 0; color: var(--ink); background: transparent; padding: 15px 0; font-size: 22px; }

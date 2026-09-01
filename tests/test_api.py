@@ -26,20 +26,6 @@ def test_health_without_model() -> None:
     assert response.json() == {"status": "ok", "model_loaded": False}
 
 
-def test_available_models_reports_loaded_models() -> None:
-    main.model = MovieRecommender(
-        pd.DataFrame({"movieId": [1], "title": ["Alpha"], "genres": ["Action"]}),
-        [[1.0]],
-        {1: 0},
-    )
-    main.models = {"item": main.model}
-
-    response = TestClient(main.app).get("/models")
-
-    assert response.status_code == 200
-    assert response.json() == ["item"]
-
-
 def test_movies_search_returns_matching_catalog_entries() -> None:
     main.model = MovieRecommender(
         pd.DataFrame(

@@ -41,15 +41,6 @@ do projeto e execute:
 make deploy
 ```
 
-O alvo valida os dois artefatos antes de chamar `fastapi deploy`. No FastAPI
-Cloud, configure as variáveis `ITEM_MODEL_PATH=model.joblib` e
-`TWO_TOWER_MODEL_PATH=model.pt` caso use caminhos diferentes dos padrões. A
-interface escolherá somente os modelos carregados.
-
-Abra `http://127.0.0.1:8000/` no navegador para usar a interface de recomendações.
-Os filmes podem ser buscados por título; a documentação interativa continua disponível em
-`http://127.0.0.1:8000/docs`.
-
 Endpoints:
 
 - `GET /health`

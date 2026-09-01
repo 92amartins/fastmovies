@@ -7,27 +7,6 @@ const selectedMovie = document.querySelector('#selected-movie');
 const recommendationStatus = document.querySelector('#recommendation-status');
 const recommendations = document.querySelector('#recommendations');
 const limitSelect = document.querySelector('#limit');
-const modelSelect = document.querySelector('#model');
-
-loadAvailableModels();
-
-async function loadAvailableModels() {
-  try {
-    const response = await fetch('/models');
-    if (!response.ok) throw new Error(await errorMessage(response));
-    const availableModels = await response.json();
-    [...modelSelect.options].forEach((option) => {
-      const isAvailable = availableModels.includes(option.value);
-      option.disabled = !isAvailable;
-      if (!isAvailable) option.textContent = `${option.textContent.split(' (')[0]} (not loaded)`;
-    });
-    if (!availableModels.includes(modelSelect.value) && availableModels.length) {
-      modelSelect.value = availableModels[0];
-    }
-  } catch {
-    modelSelect.value = 'item';
-  }
-}
 
 searchForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -37,7 +16,7 @@ searchForm.addEventListener('submit', async (event) => {
   movieResults.replaceChildren();
   setStatus(searchStatus, 'Searching the catalog...');
   try {
-    const response = await fetch(`/movies?query=${encodeURIComponent(query)}&limit=10&model=${modelSelect.value}`);
+    const response = await fetch(`/movies?query=${encodeURIComponent(query)}&limit=10`);
     if (!response.ok) throw new Error(await errorMessage(response));
     const movies = await response.json();
     renderMovieResults(movies);
@@ -79,7 +58,7 @@ async function loadRecommendations(movieId, movie) {
   recommendationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
-    const response = await fetch(`/recommendations?movie_id=${movieId}&limit=${limitSelect.value}&model=${modelSelect.value}`);
+    const response = await fetch(`/recommendations?movie_id=${movieId}&limit=${limitSelect.value}`);
     if (!response.ok) throw new Error(await errorMessage(response));
     const data = await response.json();
     renderRecommendations(data.recommendations);
